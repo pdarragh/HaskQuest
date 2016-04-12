@@ -1,6 +1,6 @@
 module HaskQuest.Item
     (
-        Item
+        Item (..)
     ) where
 
 {-
@@ -15,10 +15,10 @@ Items contain a name, a short description, and a long description.
 -}
 
 data Item = Item {
-    name :: String,
-    short :: String,
-    long :: String
-}
+    name    :: String,
+    short   :: String,
+    long    :: String
+} deriving (Eq)
 
 instance Show Item where
     show (Item n _ _) = n

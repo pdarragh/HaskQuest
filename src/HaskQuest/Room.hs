@@ -1,7 +1,7 @@
 module HaskQuest.Room
     (
-        Exit,
-        Room
+        Exit (..),
+        Room (..)
     ) where
 
 import HaskQuest.Item
@@ -18,19 +18,23 @@ the name to use when traveling to the other room.
 
 -}
 
-type Exit = (String, Room)
+data Exit = Exit {
+    inline  :: String,
+    aliases :: [String],
+    room    :: Room
+} deriving (Show, Eq)
 
 data Room = Room {
-    name :: String,
+    name        :: String,
     description :: String,
-    items :: [Item],
-    exits :: [Exit]
-}
+    items       :: [Item],
+    exits       :: [Exit]
+} deriving (Eq)
 
 showExits :: [Exit] -> String
-showExits [] = "There are no exits."
-showExits (e:[]) = "There is an exit " ++ (fst e) ++ "."
-showExits es = "There are exits " ++ (intercalate ", " (init (map fst es))) ++ " and " ++ (head (reverse (map fst es))) ++ "."
+showExits []     = "There is no way out."
+showExits (e:[]) = "There is an exit " ++ (inline e) ++ "."
+showExits es     = "There are exits " ++ (intercalate ", " (init (map inline es))) ++ " and " ++ (head (reverse (map inline es))) ++ "."
 
 instance Show Room where
-    show (Room _ d [] es) = d ++ "\n\n" ++ (showExits es)
+    show (Room _ d [] es) = d ++ " " ++ (showExits es)
