@@ -12,15 +12,22 @@ For handling user input and then doing things.
 
 -}
 
-data PlayerAction = Go String deriving (Show)
+data PlayerAction
+    = Go String
+    | Back
+    deriving (Show)
 
 parseChoice :: String -> PlayerAction
 parseChoice choice
-    | firstWord == "go" = Go rest
+    | firstWord == "go" = if secondWord == "back" then
+            Back
+        else
+            Go firstRest
     | otherwise = error ("No such action: " ++ choice)
     where
         firstWord = toLower $ head $ words choice
-        rest = unwords $ drop 1 $ words choice
+        firstRest = unwords $ drop 1 $ words choice
+        secondWord = toLower $ head $ tail $ words choice
 
 toLower :: String -> String
 toLower s = map Data.Char.toLower s

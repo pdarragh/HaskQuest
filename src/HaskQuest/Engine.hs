@@ -24,7 +24,6 @@ data Engine = Engine {
 
 runGame :: Engine -> IO ()
 runGame (Engine r p i) = do
-    print (Engine r p i)
     print r
     input <- getLine
     let action = parseChoice input
@@ -37,3 +36,7 @@ runGame (Engine r p i) = do
                 inlined = filter ( (==) s . inline) (exits r)
                 aliased = filter (elem s . aliases) (exits r)
                 matchedExits = nub $ inlined ++ aliased
+        Back -> if isNothing p then
+                error "Cannot go back!"
+            else
+                runGame (Engine (fromJust p) (Just r) i)
