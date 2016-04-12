@@ -1,7 +1,7 @@
 module HaskQuest.Engine
     (
         Engine (..),
-        startGame
+        runGame
     ) where
 
 import HaskQuest.Item
@@ -9,6 +9,7 @@ import HaskQuest.Parser
 import HaskQuest.Room
 
 import Data.List (nub)
+import Data.Maybe
 
 {-
 All of the game mechanics needed to actually run the game.
@@ -16,22 +17,20 @@ All of the game mechanics needed to actually run the game.
 -}
 
 data Engine = Engine {
-    rooms :: [Room]
+    currentRoom :: Room,
+    prevRoom    :: Maybe Room,
+    inventory   :: [Item]
 } deriving (Show)
 
-startGame :: Engine -> IO ()
-startGame e
-    | null (rooms e) = error "No rooms to run."
-    | otherwise = runRoom $ head (rooms e)
-
-runRoom :: Room -> IO ()
-runRoom r = do
+runGame :: Engine -> IO ()
+runGame (Engine r p i) = do
+    print (Engine r p i)
     print r
     input <- getLine
     let action = parseChoice input
     case action of
         (Go s) -> if length matchedExits == 1 then
-                runRoom $ room $ head matchedExits
+                runGame (Engine (room $ head matchedExits) (Just r) i)
             else
                 error "No matching room!"
             where
