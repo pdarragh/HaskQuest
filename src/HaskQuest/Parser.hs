@@ -20,15 +20,16 @@ data PlayerAction
 
 parseChoice :: String -> PlayerAction
 parseChoice choice
-    | firstWord == "go" = if secondWord == "back" then
+    | firstWord == "go" = if secondWord == "back"
+        then
             Back
         else
             Go firstRest
     | firstWord == "quit" = Quit
     | otherwise = error ("No such action: " ++ choice)
     where
-        firstWord = toLower $ head $ words choice
-        firstRest = unwords $ drop 1 $ words choice
+        firstWord  = toLower $ head $ words choice
+        firstRest  = unwords $ drop 1 $ words choice
         secondWord = toLower $ head $ tail $ words choice
 
 toLower :: String -> String
