@@ -16,6 +16,11 @@ All of the game mechanics needed to actually run the game.
 
 -}
 
+data GameAction
+    = RunEngine Engine
+    | UserError String
+    | SystemQuit
+
 data Engine = Engine {
     currentRoom :: Room,
     prevRoom    :: Maybe Room,
@@ -24,30 +29,38 @@ data Engine = Engine {
 
 runGame :: Engine -> IO ()
 runGame e = do
-    me <- gameStep e
-    case me of
-        Nothing -> runGame e
-        Just e' -> runGame e'
-
-gameStep :: Engine -> IO (Maybe Engine)
-gameStep (Engine r p i) = do
-    -- print (Engine r p i)
-    print r
-    input <- promptUser
-    let action = parseChoice input
+    action <- gameStep e
     case action of
-        (Go s) -> if length matchedExits == 1 then
-                wrapEngine (Engine (room $ head matchedExits) (Just r) i)
-            else
-                gameError "No matching room!"
-            where
-                inlined = filter ( (==) s . inline) (exits r)
-                aliased = filter (elem s . aliases) (exits r)
-                matchedExits = nub $ inlined ++ aliased
-        Back -> if isNothing p || null (filter ( (==) (fromJust p) . room) (exits r)) then
-                gameError "Cannot go back!"
-            else
-                wrapEngine (Engine (fromJust p) (Just r) i)
+        (RunEngine e') -> runGame e'
+        (UserError s) -> do
+            gameError s
+            runGame e
+        SystemQuit -> do
+            putStrLn "Quitting..."
+            return ()
+
+gameStep :: Engine -> IO (GameAction)
+gameStep e = do
+    -- print (Engine r p i)
+    print (currentRoom e)
+    input <- promptUser
+    return $ actOnParse e $ parseChoice input
+
+actOnParse :: Engine -> PlayerAction -> GameAction
+actOnParse (Engine r p i) action = case action of
+    (Go s) -> if length matchedExits == 1 then
+            RunEngine (Engine (room $ head matchedExits) (Just r) i)
+        else
+            UserError "No matching room!"
+        where
+            inlined = filter ( (==) s . inline) (exits r)
+            aliased = filter (elem s . aliases) (exits r)
+            matchedExits = nub $ inlined ++ aliased
+    Back -> if isNothing p || null (filter ( (==) (fromJust p) . room) (exits r)) then
+            UserError "Cannot go back!"
+        else
+            RunEngine (Engine (fromJust p) (Just r) i)
+    Quit -> SystemQuit
 
 promptUser :: IO (String)
 promptUser = do
@@ -55,10 +68,6 @@ promptUser = do
     input <- getLine
     return input
 
-gameError :: String -> IO (Maybe Engine)
+gameError :: String -> IO ()
 gameError s = do
     putStrLn $ s ++ "\n"
-    return Nothing
-
-wrapEngine :: Engine -> IO (Maybe Engine)
-wrapEngine e = return (Just e)

@@ -15,6 +15,7 @@ For handling user input and then doing things.
 data PlayerAction
     = Go String
     | Back
+    | Quit
     deriving (Show)
 
 parseChoice :: String -> PlayerAction
@@ -23,6 +24,7 @@ parseChoice choice
             Back
         else
             Go firstRest
+    | firstWord == "quit" = Quit
     | otherwise = error ("No such action: " ++ choice)
     where
         firstWord = toLower $ head $ words choice
