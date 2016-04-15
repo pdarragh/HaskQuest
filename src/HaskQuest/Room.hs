@@ -1,6 +1,8 @@
 module HaskQuest.Room
     ( Exit (..)
+    , emptyExit
     , Room (..)
+    , emptyRoom
     ) where
 
 import HaskQuest.Item (Item)
@@ -24,6 +26,9 @@ data Exit = Exit
     { aliases   :: [String]
     , room      :: Room
     } deriving (Show, Eq)
+
+emptyExit :: Exit
+emptyExit = Exit [] emptyRoom
 
 setExitAliases :: Exit -> [String] -> Exit
 setExitAliases e as = e { aliases = as }
@@ -60,6 +65,9 @@ data Room = Room
 
 instance Show Room where
     show (Room _ d _ _) = d
+
+emptyRoom :: Room
+emptyRoom = Room "" "" [] []
 
 setName :: Room -> String -> Room
 setName r n = r { name = n }

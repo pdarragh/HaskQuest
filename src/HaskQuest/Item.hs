@@ -1,5 +1,6 @@
 module HaskQuest.Item
     ( Item (..)
+    , emptyItem
     ) where
 
 {-
@@ -18,6 +19,9 @@ data Item = Item
 
 instance Show Item where
     show (Item n _) = n
+
+emptyItem :: Item
+emptyItem = Item "" ""
 
 setName :: Item -> String -> Item
 setName i n = i { name = n }
