@@ -1,12 +1,13 @@
 module HaskQuest.Engine
-    (
-        Engine (..),
-        runGame
+    ( Engine (..)
+    , runGame
     ) where
 
-import HaskQuest.Item
 import HaskQuest.Parser
-import HaskQuest.Room
+import qualified HaskQuest.Item as Item
+import qualified HaskQuest.Room as Room
+import HaskQuest.Item (Item (..))
+import HaskQuest.Room (Room (..), Exit (..))
 
 import Data.List (nub)
 import Data.Maybe
@@ -21,11 +22,11 @@ data GameAction
     | UserError String
     | SystemQuit
 
-data Engine = Engine {
-    currentRoom :: Room,
-    prevRoom    :: Maybe Room,
-    inventory   :: [Item]
-} deriving (Show)
+data Engine = Engine
+    { currentRoom :: Room
+    , prevRoom    :: Maybe Room
+    , inventory   :: [Item]
+    } deriving (Show)
 
 runGame :: Engine -> IO ()
 runGame e = do
@@ -55,11 +56,9 @@ actOnParse (Engine r p i) action = case action of
             then
                 RunEngine (Engine (room $ head matchedExits) (Just r) i)
             else
-                UserError "No matching room!"
+                UserError "No such room!"
             where
-                inlined = filter ( (==) s . inline) (exits r)
-                aliased = filter (elem s . aliases) (exits r)
-                matchedExits = nub $ inlined ++ aliased
+                matchedExits = nub $ filter (elem s . aliases) (exits r)
     Back
         -> if isNothing p || null (filter ( (==) (fromJust p) . room) (exits r))
             then

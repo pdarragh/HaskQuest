@@ -1,24 +1,26 @@
 module HaskQuest.Item
-    (
-        Item (..)
+    ( Item (..)
     ) where
 
 {-
-The description of items in the game.
+An Item is something the player can interact with. For now, the only supported
+actions are to 'take' an Item and 'inspect' an Item.
 
-Items contain a name, a short description, and a long description.
-
-* Name: how items will be described in inventory
-* Short description: how items will be described when you enter a room
-* Long description: how items will be described upon inspection
-
+- name
+    The proper name of the Item, as it will appear in the inventory.
+- inspect
+    The description of the Item when the player decides to 'inspect' it.
 -}
-
-data Item = Item {
-    name    :: String,
-    short   :: String,
-    long    :: String
-} deriving (Eq)
+data Item = Item
+    { name    :: String
+    , inspect :: String
+    } deriving (Eq)
 
 instance Show Item where
-    show (Item n _ _) = n
+    show (Item n _) = n
+
+setName :: Item -> String -> Item
+setName i n = i { name = n }
+
+setInspect :: Item -> String -> Item
+setInspect i s = i { inspect = s }

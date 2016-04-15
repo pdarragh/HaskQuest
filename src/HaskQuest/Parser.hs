@@ -1,7 +1,6 @@
 module HaskQuest.Parser
-    (
-        PlayerAction (..),
-        parseChoice
+    ( PlayerAction (..)
+    , parseChoice
     )
     where
 

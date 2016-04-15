@@ -1,40 +1,80 @@
 module HaskQuest.Room
-    (
-        Exit (..),
-        Room (..)
+    ( Exit (..)
+    , Room (..)
     ) where
 
-import HaskQuest.Item
-
-import Data.List (intercalate)
+import HaskQuest.Item (Item)
 
 {-
-The description of a room in an adventure.
+The Exit is a description of a way out of a Room. Each Exit leads to another
+Room and has (potentially) multiple ways of being referenced.
 
-Rooms must have at least a name, description, and a list of exits (although you
-may choose to leave the list empty). The name and description are strings, and
-the list of exits is a list of pairs of strings to Rooms. The strings represent
-the name to use when traveling to the other room.
+- aliases
+    The various ways the player can refer to the Exit when they attempt to leave
+    through it.
+- room
+    The Room to which the Exit leads.
 
+Your list of aliases should be pretty complete, as it defines how a user is able
+to find their way out of a room. A user will not be able to go through your Exit
+without utilizing one of the phrases in your list of aliases, so think it
+through.
 -}
+data Exit = Exit
+    { aliases   :: [String]
+    , room      :: Room
+    } deriving (Show, Eq)
 
-data Exit = Exit {
-    inline  :: String,
-    aliases :: [String],
-    room    :: Room
-} deriving (Show, Eq)
+setExitAliases :: Exit -> [String] -> Exit
+setExitAliases e as = e { aliases = as }
 
-data Room = Room {
-    name        :: String,
-    description :: String,
-    items       :: [Item],
-    exits       :: [Exit]
-} deriving (Eq)
+addExitAlias :: Exit -> String -> Exit
+addExitAlias e a = e { aliases = a:(aliases e) }
 
-showExits :: [Exit] -> String
-showExits []     = "There is no way out."
-showExits (e:[]) = "There is an exit " ++ (inline e) ++ "."
-showExits es     = "There are exits " ++ (intercalate ", " (init (map inline es))) ++ " and " ++ (head (reverse (map inline es))) ++ "."
+setExitRoom :: Exit -> Room -> Exit
+setExitRoom e r = e { room = r }
+
+{-
+The Room datatype describes a room within your world. Rooms consist of:
+
+- name
+    The formal name of the room. This might show up on a map or a HUD if one is
+    ever implemented.
+- description
+    Text the player sees when they enter the room.
+- items
+    A list of Items that the player might be able to interact with.
+- exits
+    A list of Exits leading to other 'Room's that the player can go to.
+
+You are responsible for writing an apt description of a Room. The description
+should include references to all Exits and Items you want your users to know
+about, as no information about them is given upfront otherwise.
+-}
+data Room = Room
+    { name          :: String
+    , description   :: String
+    , items         :: [Item]
+    , exits         :: [Exit]
+    } deriving (Eq)
 
 instance Show Room where
-    show (Room _ d [] es) = d ++ " " ++ (showExits es)
+    show (Room _ d _ _) = d
+
+setName :: Room -> String -> Room
+setName r n = r { name = n }
+
+setDesc :: Room -> String -> Room
+setDesc r d = r { description = d }
+
+setItems :: Room -> [Item] -> Room
+setItems r is = r { items = is }
+
+addItem :: Room -> Item -> Room
+addItem r i = r { items = i:(items r) }
+
+setExits :: Room -> [Exit] -> Room
+setExits r es = r { exits = es }
+
+addExit :: Room -> Exit -> Room
+addExit r e = r { exits = e:(exits r) }
