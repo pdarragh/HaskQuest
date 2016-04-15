@@ -9,7 +9,9 @@ import qualified HaskQuest.Room as Room
 import HaskQuest.Item (Item (..))
 import HaskQuest.Room (Room (..), Exit (..))
 
-import Data.List (nub)
+import Prelude hiding (print)
+
+import Data.List (nub, intercalate)
 import Data.Maybe
 
 {-
@@ -39,14 +41,11 @@ runGame e = do
                 gameError s
                 runGame e
         SystemQuit
-            -> do
-                putStrLn "Quitting..."
-                return ()
+            -> return ()
 
 gameStep :: Engine -> IO (GameAction)
 gameStep e = do
-    print (currentRoom e)
-    input <- promptUser
+    input <- promptUser e
     return $ actOnParse e $ parseChoice input
 
 actOnParse :: Engine -> PlayerAction -> GameAction
@@ -68,12 +67,31 @@ actOnParse (Engine r p i) action = case action of
     Quit
         -> SystemQuit
 
-promptUser :: IO (String)
-promptUser = do
-    putStr "\n> "
-    input <- getLine
+promptUser :: Engine -> IO (String)
+promptUser e = do
+    print ""
+    print (description $ currentRoom e)
+    print ""
+    print ("Room: " ++ (Room.name $ currentRoom e))
+    if null (inventory e)
+        then print "Inventory: (Empty)"
+        else print $ "Inventory: " ++ (intercalate ", " $ map Item.name (inventory e))
+    input <- prompt
     return input
 
 gameError :: String -> IO ()
 gameError s = do
     putStrLn $ s ++ "\n"
+
+leader :: String
+leader = "||"
+
+print :: String -> IO ()
+print s = do
+    putStrLn $ leader ++ " " ++ s
+
+prompt :: IO (String)
+prompt = do
+    putStr $ leader ++ ">> "
+    input <- getLine
+    return input
