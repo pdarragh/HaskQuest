@@ -1,6 +1,8 @@
 module HaskQuest.Item
     ( Item (..)
     , emptyItem
+    , setName
+    , setInspect
     ) where
 
 {-

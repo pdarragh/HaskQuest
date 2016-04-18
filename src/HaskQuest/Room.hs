@@ -1,8 +1,17 @@
 module HaskQuest.Room
     ( Exit (..)
     , emptyExit
+    , setExitAliases
+    , addExitAlias
+    , setExitRoom
     , Room (..)
     , emptyRoom
+    , setName
+    , setDesc
+    , setItems
+    , addItem
+    , setExits
+    , addExit
     ) where
 
 import HaskQuest.Item (Item)
