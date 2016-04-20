@@ -81,7 +81,10 @@ lookupRoom rs i = Map.lookup i rs
 roomFromExits :: RoomMap -> [Exit] -> Maybe RoomID -> Maybe Room
 roomFromExits rs es mr = case mr of
     Just roomid
-        -> lookupRoom rs roomid
+        -> case filtered of
+            (e:[])  -> lookupRoom rs roomid
+            _       -> Nothing
+            where filtered = filter ( (==) roomid . exitID) es
     Nothing
         -> Nothing
 
@@ -111,6 +114,7 @@ promptUser e = do
     print ""
     print (description $ currentRoom e)
     print ""
+    print ""
     print ("Room: " ++ (Room.roomID $ currentRoom e))
     if null (inventory e)
         then print "Inventory: (Empty)"
@@ -120,7 +124,9 @@ promptUser e = do
 
 gameError :: String -> IO ()
 gameError s = do
-    putStrLn $ s ++ "\n"
+    putStr $ leader ++ "\n"
+    putStrLn $ leader ++ " (!) " ++ s
+    putStrLn $ leader ++ " ----" ++ (replicate (length s) '-')
 
 leader :: String
 leader = "||"
@@ -131,6 +137,7 @@ print s = do
 
 prompt :: IO (String)
 prompt = do
+    putStr $ leader ++ "\n"
     putStr $ leader ++ ">> "
     hFlush stdout
     input <- getLine
