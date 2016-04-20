@@ -1,23 +1,37 @@
 module HaskQuest.Engine
     ( Engine (..)
     , runGame
+    , RoomMap
+    , emptyRoomMap
+    , addRoom
     ) where
 
+{- Module Imports -}
 import HaskQuest.Parser
+import HaskQuest.Item (Item (..))
+import HaskQuest.Room (RoomID, Room (..), Exit (..))
+
 import qualified HaskQuest.Item as Item
 import qualified HaskQuest.Room as Room
-import HaskQuest.Item (Item (..))
-import HaskQuest.Room (Room (..), Exit (..))
+
+{- Library Imports -}
+import Data.List (nub, intercalate)
+import Data.Maybe
+import System.IO (hFlush, stdout)
 
 import Prelude hiding (print)
 
-import Data.List (nub, intercalate)
-import Data.Maybe
+import qualified Data.Map as Map
 
 {-
 All of the game mechanics needed to actually run the game.
 
 -}
+
+type RoomMap = Map.Map RoomID Room
+
+emptyRoomMap :: RoomMap
+emptyRoomMap = Map.empty
 
 data GameAction
     = RunEngine Engine
@@ -25,9 +39,10 @@ data GameAction
     | SystemQuit
 
 data Engine = Engine
-    { currentRoom :: Room
-    , prevRoom    :: Maybe Room
-    , inventory   :: [Item]
+    { currentRoom   :: Room
+    , prevRoom      :: Maybe RoomID
+    , rooms         :: RoomMap
+    , inventory     :: [Item]
     } deriving (Show)
 
 runGame :: Engine -> IO ()
@@ -48,22 +63,46 @@ gameStep e = do
     input <- promptUser e
     return $ actOnParse e $ parseChoice input
 
+addRoom :: RoomMap -> Room -> RoomMap
+addRoom m r = Map.insert (roomID r) r m
+
+roomIDFromExits :: [Exit] -> String -> Maybe RoomID
+roomIDFromExits es s = if length matchedExits == 1
+        then
+            Just $ exitID (head matchedExits)
+        else
+            Nothing
+    where
+        matchedExits = nub $ filter (elem s . aliases) es
+
+lookupRoom :: RoomMap -> RoomID -> Maybe Room
+lookupRoom rs i = Map.lookup i rs
+
+roomFromExits :: RoomMap -> [Exit] -> Maybe RoomID -> Maybe Room
+roomFromExits rs es mr = case mr of
+    Just roomid
+        -> lookupRoom rs roomid
+    Nothing
+        -> Nothing
+
 actOnParse :: Engine -> PlayerAction -> GameAction
-actOnParse (Engine r p i) action = case action of
+actOnParse (Engine r p rs i) action = case action of
     (Go s)
-        -> if length matchedExits == 1
-            then
-                RunEngine (Engine (room $ head matchedExits) (Just r) i)
-            else
-                UserError "No such room!"
-            where
-                matchedExits = nub $ filter (elem s . aliases) (exits r)
+        -> case roomIDFromExits (exits r) s of
+            Just roomid
+                -> case (lookupRoom rs roomid) of
+                    Just room
+                        -> RunEngine (Engine room (Just (roomID r)) rs i)
+                    Nothing
+                        -> UserError "Implementation error: no matching RoomID."
+            Nothing
+                -> UserError "No such room!"
     Back
-        -> if isNothing p || null (filter ( (==) (fromJust p) . room) (exits r))
-            then
-                UserError "Cannot go back!"
-            else
-                RunEngine (Engine (fromJust p) (Just r) i)
+        -> case roomFromExits rs (exits r) p of
+            Just room
+                -> RunEngine (Engine room (Just (roomID r)) rs i)
+            Nothing
+                -> UserError "Cannot go back!"
     Quit
         -> SystemQuit
 
@@ -72,7 +111,7 @@ promptUser e = do
     print ""
     print (description $ currentRoom e)
     print ""
-    print ("Room: " ++ (Room.name $ currentRoom e))
+    print ("Room: " ++ (Room.roomID $ currentRoom e))
     if null (inventory e)
         then print "Inventory: (Empty)"
         else print $ "Inventory: " ++ (intercalate ", " $ map Item.name (inventory e))
@@ -93,5 +132,6 @@ print s = do
 prompt :: IO (String)
 prompt = do
     putStr $ leader ++ ">> "
+    hFlush stdout
     input <- getLine
     return input

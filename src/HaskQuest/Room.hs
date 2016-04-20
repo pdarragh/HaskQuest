@@ -1,12 +1,11 @@
 module HaskQuest.Room
-    ( Exit (..)
-    , emptyExit
+    ( RoomID
+    , Exit (..)
     , setExitAliases
     , addExitAlias
-    , setExitRoom
+    , setExitRoomID
     , Room (..)
     , emptyRoom
-    , setName
     , setDesc
     , setItems
     , addItem
@@ -15,6 +14,12 @@ module HaskQuest.Room
     ) where
 
 import HaskQuest.Item (Item)
+
+{-
+A RoomID is used to uniquely identify a specific room within a game. Creating
+this structure allows for 
+-}
+type RoomID = String
 
 {-
 The Exit is a description of a way out of a Room. Each Exit leads to another
@@ -33,11 +38,8 @@ through.
 -}
 data Exit = Exit
     { aliases   :: [String]
-    , room      :: Room
+    , exitID    :: RoomID
     } deriving (Show, Eq)
-
-emptyExit :: Exit
-emptyExit = Exit [] emptyRoom
 
 setExitAliases :: Exit -> [String] -> Exit
 setExitAliases e as = e { aliases = as }
@@ -45,8 +47,8 @@ setExitAliases e as = e { aliases = as }
 addExitAlias :: Exit -> String -> Exit
 addExitAlias e a = e { aliases = a:(aliases e) }
 
-setExitRoom :: Exit -> Room -> Exit
-setExitRoom e r = e { room = r }
+setExitRoomID :: Exit -> RoomID -> Exit
+setExitRoomID e i = e { exitID = i }
 
 {-
 The Room datatype describes a room within your world. Rooms consist of:
@@ -66,7 +68,7 @@ should include references to all Exits and Items you want your users to know
 about, as no information about them is given upfront otherwise.
 -}
 data Room = Room
-    { name          :: String
+    { roomID        :: RoomID
     , description   :: String
     , items         :: [Item]
     , exits         :: [Exit]
@@ -76,10 +78,10 @@ instance Show Room where
     show (Room _ d _ _) = d
 
 emptyRoom :: Room
-emptyRoom = Room "" "" [] []
+emptyRoom = Room "Empty" "An empty room with no way out." [] []
 
-setName :: Room -> String -> Room
-setName r n = r { name = n }
+setID :: Room -> RoomID -> Room
+setID r i = r { roomID = i }
 
 setDesc :: Room -> String -> Room
 setDesc r d = r { description = d }
