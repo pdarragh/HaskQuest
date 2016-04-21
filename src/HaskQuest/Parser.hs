@@ -15,6 +15,7 @@ data PlayerAction
     = Go String
     | Back
     | Quit
+    | Invalid
     deriving (Show)
 
 parseChoice :: String -> PlayerAction
@@ -25,7 +26,7 @@ parseChoice choice
         else
             Go firstRest
     | firstWord == "quit" = Quit
-    | otherwise = error ("No such action: " ++ choice)
+    | otherwise = Invalid
     where
         firstWord  = toLower $ head $ words choice
         firstRest  = unwords $ drop 1 $ words choice

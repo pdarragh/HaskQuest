@@ -108,6 +108,8 @@ actOnParse (Engine r p rs i) action = case action of
                 -> UserError "Cannot go back!"
     Quit
         -> SystemQuit
+    Invalid
+        -> UserError "Invalid action!"
 
 promptUser :: Engine -> IO (String)
 promptUser e = do
