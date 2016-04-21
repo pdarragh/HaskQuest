@@ -29,12 +29,15 @@ parseChoice choice
             Go firstRest
     | firstWord == "quit" = Quit
     | firstWord == "inventory" = Inventory
-    | firstWord == "description" = Description
+    | oneOf firstWord ["description", "room", "where"] = Description
     | otherwise = Invalid
     where
         firstWord  = toLower $ head $ words choice
         firstRest  = unwords $ drop 1 $ words choice
         secondWord = toLower $ head $ tail $ words choice
+
+oneOf :: Eq a => a -> [a] -> Bool
+oneOf x xs = (not . null) $ filter ( (==) x) xs
 
 toLower :: String -> String
 toLower s = map Data.Char.toLower s
