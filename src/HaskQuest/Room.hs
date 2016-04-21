@@ -7,10 +7,12 @@ module HaskQuest.Room
     , Room (..)
     , emptyRoom
     , setDesc
-    , setItems
-    , addItem
     , setExits
     , addExit
+    , setRetrievables
+    , addRetrievable
+    , setUnretrievables
+    , addUnretrievable
     ) where
 
 import HaskQuest.Item (Item)
@@ -68,17 +70,18 @@ should include references to all Exits and Items you want your users to know
 about, as no information about them is given upfront otherwise.
 -}
 data Room = Room
-    { roomID        :: RoomID
-    , description   :: String
-    , items         :: [Item]
-    , exits         :: [Exit]
+    { roomID            :: RoomID
+    , description       :: String
+    , exits             :: [Exit]
+    , retrievables      :: [Item]
+    , unretrievables    :: [Item]
     } deriving (Eq)
 
 instance Show Room where
-    show (Room _ d _ _) = d
+    show (Room _ d _ _ _) = d
 
 emptyRoom :: Room
-emptyRoom = Room "Empty" "An empty room with no way out." [] []
+emptyRoom = Room "Empty" "An empty room with no way out." [] [] []
 
 setID :: Room -> RoomID -> Room
 setID r i = r { roomID = i }
@@ -86,14 +89,20 @@ setID r i = r { roomID = i }
 setDesc :: Room -> String -> Room
 setDesc r d = r { description = d }
 
-setItems :: Room -> [Item] -> Room
-setItems r is = r { items = is }
-
-addItem :: Room -> Item -> Room
-addItem r i = r { items = i:(items r) }
-
 setExits :: Room -> [Exit] -> Room
 setExits r es = r { exits = es }
 
 addExit :: Room -> Exit -> Room
 addExit r e = r { exits = e:(exits r) }
+
+setRetrievables :: Room -> [Item] -> Room
+setRetrievables r is = r { retrievables = is }
+
+addRetrievable :: Room -> Item -> Room
+addRetrievable r i = r { retrievables = i:(retrievables r) }
+
+setUnretrievables :: Room -> [Item] -> Room
+setUnretrievables r is = r { unretrievables = is }
+
+addUnretrievable :: Room -> Item -> Room
+addUnretrievable r i = r { unretrievables = i:(unretrievables r)}
