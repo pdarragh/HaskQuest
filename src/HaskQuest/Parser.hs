@@ -15,6 +15,8 @@ data PlayerAction
     = Go String
     | Back
     | Quit
+    | Inventory
+    | Description
     | Invalid
     deriving (Show)
 
@@ -26,6 +28,8 @@ parseChoice choice
         else
             Go firstRest
     | firstWord == "quit" = Quit
+    | firstWord == "inventory" = Inventory
+    | firstWord == "description" = Description
     | otherwise = Invalid
     where
         firstWord  = toLower $ head $ words choice

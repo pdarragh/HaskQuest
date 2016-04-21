@@ -1,6 +1,6 @@
 module HaskQuest.Engine
     ( Engine (..)
-    , runGame
+    , startGame
     , RoomMap
     , emptyRoomMap
     , addRoom
@@ -15,8 +15,9 @@ import qualified HaskQuest.Item as Item
 import qualified HaskQuest.Room as Room
 
 {- Library Imports -}
-import Data.List (nub, intercalate)
+import Data.List (nub, intercalate, maximumBy)
 import Data.Maybe
+import Data.Ord (comparing)
 import System.IO (hFlush, stdout)
 
 import Prelude hiding (print)
@@ -35,6 +36,8 @@ emptyRoomMap = Map.empty
 
 data GameAction
     = RunEngine Engine
+    | ShowInventory
+    | ShowDescription
     | UserError String
     | SystemQuit
 
@@ -45,18 +48,37 @@ data Engine = Engine
     , inventory     :: [Item]
     } deriving (Show)
 
-runGame :: Engine -> IO ()
-runGame e = do
+startGame :: Engine -> IO ()
+startGame e = runGame e True
+
+runGame :: Engine -> Bool -> IO ()
+runGame e s = do
+    successDisplayPrompt s e
     action <- gameStep e
     case action of
         (RunEngine e')
-            -> runGame e'
+            -> runGame e' True
+        ShowInventory
+            -> do
+                showInventory (inventory e)
+                runGame e False
+        ShowDescription
+            -> do
+                showDescription e
+                runGame e False
         (UserError s)
             -> do
                 gameError s
-                runGame e
+                runGame e False
         SystemQuit
             -> return ()
+
+successDisplayPrompt :: Bool -> Engine -> IO ()
+successDisplayPrompt s e = if s
+    then
+        showDescription e
+    else
+        return ()
 
 gameStep :: Engine -> IO (GameAction)
 gameStep e = do
@@ -106,13 +128,23 @@ actOnParse (Engine r p rs i) action = case action of
                 -> RunEngine (Engine room (Just (roomID r)) rs i)
             Nothing
                 -> UserError "Cannot go back!"
+    Inventory
+        -> ShowInventory
+    Description
+        -> ShowDescription
     Quit
         -> SystemQuit
     Invalid
         -> UserError "Invalid action!"
 
-promptUser :: Engine -> IO (String)
-promptUser e = do
+showInventory :: [Item] -> IO ()
+showInventory i = do
+    print ""
+    print "You are carrying:"
+    mapM_ print $ map ( (++) "  * " . name) i
+
+showDescription :: Engine -> IO ()
+showDescription e = do
     print ""
     print (description $ currentRoom e)
     print ""
@@ -121,6 +153,9 @@ promptUser e = do
     if null (inventory e)
         then print "Inventory: (Empty)"
         else print $ "Inventory: " ++ (intercalate ", " $ map Item.name (inventory e))
+
+promptUser :: Engine -> IO (String)
+promptUser e = do
     input <- prompt
     return input
 
@@ -128,7 +163,6 @@ gameError :: String -> IO ()
 gameError s = do
     putStr $ leader ++ "\n"
     putStrLn $ leader ++ " (!) " ++ s
-    putStrLn $ leader ++ " ----" ++ (replicate (length s) '-')
 
 leader :: String
 leader = "||"
