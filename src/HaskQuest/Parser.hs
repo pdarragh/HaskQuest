@@ -37,7 +37,7 @@ parseChoice choice
         secondWord = toLower $ head $ tail $ words choice
 
 oneOf :: Eq a => a -> [a] -> Bool
-oneOf x xs = (not . null) $ filter ( (==) x) xs
+oneOf x xs = (not . null) $ filter (x ==) xs
 
 toLower :: String -> String
-toLower s = map Data.Char.toLower s
+toLower = map Data.Char.toLower

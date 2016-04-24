@@ -10,7 +10,7 @@ name:                HaskQuest
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.0.0
+version:             0.2.0.0
 
 -- A short (one-line) description of the package.
 synopsis:            A Haskell-based domain-specific language for generating and playing text-based adventure games.
@@ -67,4 +67,3 @@ library
   
   -- Base language which the package is written in.
   default-language:    Haskell2010
-  

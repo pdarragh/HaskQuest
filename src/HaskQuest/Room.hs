@@ -5,6 +5,7 @@ module HaskQuest.Room
     , addExitAlias
     , setExitRoomID
     , Room (..)
+    , roomName
     , emptyRoom
     , setDesc
     , setExits
@@ -47,7 +48,7 @@ setExitAliases :: Exit -> [String] -> Exit
 setExitAliases e as = e { aliases = as }
 
 addExitAlias :: Exit -> String -> Exit
-addExitAlias e a = e { aliases = a:(aliases e) }
+addExitAlias e a = e { aliases = a:aliases e }
 
 setExitRoomID :: Exit -> RoomID -> Exit
 setExitRoomID e i = e { exitID = i }
@@ -80,6 +81,9 @@ data Room = Room
 instance Show Room where
     show (Room _ d _ _ _) = d
 
+roomName :: Room -> String
+roomName r = roomID r
+
 emptyRoom :: Room
 emptyRoom = Room "Empty" "An empty room with no way out." [] [] []
 
@@ -93,16 +97,16 @@ setExits :: Room -> [Exit] -> Room
 setExits r es = r { exits = es }
 
 addExit :: Room -> Exit -> Room
-addExit r e = r { exits = e:(exits r) }
+addExit r e = r { exits = e:exits r }
 
 setRetrievables :: Room -> [Item] -> Room
 setRetrievables r is = r { retrievables = is }
 
 addRetrievable :: Room -> Item -> Room
-addRetrievable r i = r { retrievables = i:(retrievables r) }
+addRetrievable r i = r { retrievables = i:retrievables r }
 
 setUnretrievables :: Room -> [Item] -> Room
 setUnretrievables r is = r { unretrievables = is }
 
 addUnretrievable :: Room -> Item -> Room
-addUnretrievable r i = r { unretrievables = i:(unretrievables r)}
+addUnretrievable r i = r { unretrievables = i:unretrievables r }
