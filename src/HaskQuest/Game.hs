@@ -111,7 +111,6 @@ processGameAction (Pickup i) e = do
     -- Player picked up an item.
     print ("You picked up: " ++ i)
     showInventory e
-    print $ show e
     return False
 processGameAction (DropItem i) _ = do
     -- Player dropped an item.
