@@ -23,10 +23,7 @@ actions are to 'take' an Item and 'inspect' an Item.
 data Item = Item
     { name      :: ItemID
     , inspect   :: String
-    } deriving (Eq)
-
-instance Show Item where
-    show (Item n _) = n
+    } deriving (Eq, Show)
 
 emptyItem :: Item
 emptyItem = Item "" ""

@@ -74,10 +74,7 @@ data Room = Room
     , description   :: String
     , exits         :: [Exit]
     , items         :: [ItemID]
-    } deriving (Eq)
-
-instance Show Room where
-    show (Room _ d _ _) = d
+    } deriving (Eq, Show)
 
 roomName :: Room -> String
 roomName r = roomID r

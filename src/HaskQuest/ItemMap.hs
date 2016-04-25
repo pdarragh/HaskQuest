@@ -64,7 +64,7 @@ moveItemInMap itemID mri im = case mio of
 itemString :: ItemMap -> ItemID -> String
 itemString im itemID = case mi of
     Just i
-        -> show i
+        -> name i
     Nothing
         -> ""
     where mi = lookupItem itemID im

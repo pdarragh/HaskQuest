@@ -82,6 +82,7 @@ dropItem :: ItemID -> GameStateM ()
 dropItem itemID = do
     (Engine r p rm im inv) <- get
     moveItemFromInventory itemID (roomID r)
+    addItemToRoom itemID (roomID r)
 
 -- Take an item out of the inventory and add it to the specified room.
 moveItemFromInventory :: ItemID -> RoomID -> GameStateM ()

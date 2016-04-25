@@ -30,6 +30,8 @@ data GameAction
     | ShowInventory     -- Player wants to see inventory.
     | ShowDescription   -- Player wants to see room description.
     | InspectItem Item  -- Player wants to investigate an item.
+    | Pickup ItemID     -- Player picked up an item.
+    | DropItem ItemID   -- Player dropped an item.
     | UserError String  -- Player did something wrong.
 
 -- Exported to allow a game to be played.
@@ -82,6 +84,14 @@ processPlayerAction (Inspect i) = do
             -> return (Just (InspectItem item))
         Nothing
             -> return (Just (UserError ("No such item: " ++ i)))
+processPlayerAction (Take i) = do
+    -- Try to pick up the item.
+    pickupItem i
+    return (Just (Pickup i))
+processPlayerAction (Drop i) = do
+    -- Try to drop the item.
+    dropItem i
+    return (Just (DropItem i))
 processPlayerAction Quit =
     -- Quit the game.
     return Nothing
@@ -96,6 +106,16 @@ processGameAction :: GameAction -> Engine -> IO Bool
 processGameAction Continue _ =
     -- Player moved to a new room; describe it!
     return True
+processGameAction (Pickup i) e = do
+    -- Player picked up an item.
+    print ("You picked up: " ++ i)
+    showInventory e
+    print $ show e
+    return False
+processGameAction (DropItem i) _ = do
+    -- Player dropped an item.
+    print ("You dropped: " ++ i)
+    return False
 processGameAction ShowInventory e = do
     -- Player wants to see inventory.
     showInventory e
