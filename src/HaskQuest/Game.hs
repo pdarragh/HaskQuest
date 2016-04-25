@@ -16,6 +16,7 @@ import HaskQuest.Room
 import HaskQuest.RoomMap
 import HaskQuest.State
 
+import System.Console.Readline
 import Control.Monad (when)
 import Data.List (intercalate)
 import Prelude hiding (print)
@@ -165,10 +166,16 @@ gameError s = do
 actionFromPlayer :: IO PlayerAction
 actionFromPlayer = do
     putStr $ leader ++ "\n"
-    putStr $ leader ++ ">> "
-    hFlush stdout
-    input <- getLine
-    return $ parseChoice input
+    -- putStr $ leader ++ ">> "
+    -- hFlush stdout
+    input <- readline (leader ++ ">> ")
+    case input of
+        Nothing
+            -> do
+                putStrLn ""
+                return Quit
+        Just line
+            -> return $ parseChoice line
 
 -- The generic call to output lines.
 print :: String -> IO ()
