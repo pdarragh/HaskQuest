@@ -1,11 +1,15 @@
 module HaskQuest.Item
-    ( Item (..)
+    ( ItemID
+    , Item (..)
     , emptyItem
-    , setItemID
-    , setInspect
+    , setItemName
+    , setItemInspect
     ) where
 
-type ItemID = String
+{-
+An ItemID is used to uniquely identify a specific Item within a game.
+-}
+type ItemID = Int
 
 {-
 An Item is something the player can interact with. For now, the only supported
@@ -17,8 +21,8 @@ actions are to 'take' an Item and 'inspect' an Item.
     The description of the Item when the player decides to 'inspect' it.
 -}
 data Item = Item
-    { itemID  :: ItemID
-    , inspect :: String
+    { name      :: String
+    , inspect   :: String
     } deriving (Eq)
 
 instance Show Item where
@@ -27,8 +31,8 @@ instance Show Item where
 emptyItem :: Item
 emptyItem = Item "" ""
 
-setItemID :: Item -> ItemID -> Item
-setItemID i n = i { itemID = n }
+setItemName :: Item -> String -> Item
+setItemName i n = i { name = n }
 
-setInspect :: Item -> String -> Item
-setInspect i s = i { inspect = s }
+setItemInspect :: Item -> String -> Item
+setItemInspect i s = i { inspect = s }

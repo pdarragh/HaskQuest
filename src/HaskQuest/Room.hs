@@ -10,17 +10,16 @@ module HaskQuest.Room
     , setDesc
     , setExits
     , addExit
-    , setRetrievables
-    , addRetrievable
-    , setUnretrievables
-    , addUnretrievable
+    , setItems
+    , addItem
     ) where
 
-import HaskQuest.Item (Item)
+import HaskQuest.Item (ItemID)
+
+import Data.List (delete)
 
 {-
-A RoomID is used to uniquely identify a specific room within a game. Creating
-this structure allows for 
+A RoomID is used to uniquely identify a specific room within a game.
 -}
 type RoomID = String
 
@@ -71,21 +70,20 @@ should include references to all Exits and Items you want your users to know
 about, as no information about them is given upfront otherwise.
 -}
 data Room = Room
-    { roomID            :: RoomID
-    , description       :: String
-    , exits             :: [Exit]
-    , retrievables      :: [Item]
-    , unretrievables    :: [Item]
+    { roomID        :: RoomID
+    , description   :: String
+    , exits         :: [Exit]
+    , items         :: [ItemID]
     } deriving (Eq)
 
 instance Show Room where
-    show (Room _ d _ _ _) = d
+    show (Room _ d _ _) = d
 
 roomName :: Room -> String
 roomName r = roomID r
 
 emptyRoom :: Room
-emptyRoom = Room "Empty" "An empty room with no way out." [] [] []
+emptyRoom = Room "Empty" "An empty room with no way out." [] []
 
 setID :: Room -> RoomID -> Room
 setID r i = r { roomID = i }
@@ -99,14 +97,13 @@ setExits r es = r { exits = es }
 addExit :: Room -> Exit -> Room
 addExit r e = r { exits = e:exits r }
 
-setRetrievables :: Room -> [Item] -> Room
-setRetrievables r is = r { retrievables = is }
+setItems :: Room -> [ItemID] -> Room
+setItems r is = r { items = is }
 
-addRetrievable :: Room -> Item -> Room
-addRetrievable r i = r { retrievables = i:retrievables r }
+addItem :: Room -> ItemID -> Room
+addItem r i = r { items = i:items r }
 
-setUnretrievables :: Room -> [Item] -> Room
-setUnretrievables r is = r { unretrievables = is }
-
-addUnretrievable :: Room -> Item -> Room
-addUnretrievable r i = r { unretrievables = i:unretrievables r }
+removeItem :: Room -> ItemID -> Room
+removeItem r i = do
+    let is = items r
+    r { items = delete i is }

@@ -2,14 +2,18 @@ module HaskQuest.Game
     ( startGame
     , module HaskQuest.Engine
     , module HaskQuest.Item
+    , module HaskQuest.ItemMap
     , module HaskQuest.Room
+    , module HaskQuest.RoomMap
     ) where
 
 import HaskQuest.Engine
 import HaskQuest.GameStateMonad
 import HaskQuest.Item
+import HaskQuest.ItemMap
 import HaskQuest.Parser
 import HaskQuest.Room
+import HaskQuest.RoomMap
 import HaskQuest.State
 
 import Control.Monad (when)
@@ -85,7 +89,7 @@ processGameAction Continue _ =
     return True
 processGameAction ShowInventory e = do
     -- Player wants to see inventory.
-    showInventory (inventory e)
+    showInventory e
     return False
 processGameAction ShowDescription _ = do
     -- Player wants to see room description.
@@ -96,11 +100,11 @@ processGameAction (UserError err) _ = do
     return False
 
 -- Displays the player's current inventory.
-showInventory :: [Item] -> IO ()
-showInventory i = do
+showInventory :: Engine -> IO ()
+showInventory e = do
     print ""
     print "You are carrying:"
-    mapM_ (print . (++) "  * " . show) i
+    mapM_ printListItem (map (itemString (itemMap e)) (inventory e))
 
 -- Displays the room description to the player.
 showDescription :: Engine -> IO ()
@@ -112,7 +116,7 @@ showDescription e = do
     print ("Room: " ++ roomName (currentRoom e))
     if null (inventory e)
         then print "Inventory: (Empty)"
-        else print $ "Inventory: " ++ intercalate ", " (map show (inventory e))
+        else print $ "Inventory: " ++ intercalate ", " (map (itemString (itemMap e)) (inventory e))
 
 -- When something goes wrong, outputs information to the player.
 gameError :: String -> IO ()
@@ -132,6 +136,14 @@ actionFromPlayer = do
 -- The generic call to output lines.
 print :: String -> IO ()
 print s = putStrLn $ leader ++ " " ++ s
+
+-- Special output for list items.
+printListItem :: String -> IO ()
+printListItem s = printListItemAtLevel 1 s
+
+-- Output nested list items.
+printListItemAtLevel :: Int -> String -> IO ()
+printListItemAtLevel l s = putStrLn $ leader ++ " " ++ (concat (replicate l "  ")) ++ "* " ++ s
 
 -- The string to prefix each line with.
 leader :: String
