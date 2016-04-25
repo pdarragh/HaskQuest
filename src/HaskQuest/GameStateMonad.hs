@@ -48,6 +48,12 @@ setRoomPrev = do
         Nothing
             -> stateError "Cannot go back!"
 
+-- Try to look up the given item in the engine.
+getItem :: ItemID -> GameStateM (Maybe Item)
+getItem itemID = do
+    (Engine r p rm im inv) <- get
+    return (lookupItem itemID im)
+
 -- Install an additional room into the engine's mapping.
 addRoom :: Room -> GameStateM ()
 addRoom new = do

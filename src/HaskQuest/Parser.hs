@@ -16,6 +16,7 @@ data PlayerAction
     | Back
     | Inventory
     | Description
+    | Inspect String
     | Quit
     | Invalid
     deriving (Show)
@@ -29,6 +30,7 @@ parseChoice choice
             Go firstRest
     | firstWord == "inventory" = Inventory
     | oneOf firstWord ["description", "room", "where"] = Description
+    | firstWord == "inspect" = Inspect firstRest
     | firstWord == "quit" = Quit
     | otherwise = Invalid
     where

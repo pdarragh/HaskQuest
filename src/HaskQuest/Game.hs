@@ -29,6 +29,7 @@ data GameAction
     = Continue          -- Process the current game state to proceed.
     | ShowInventory     -- Player wants to see inventory.
     | ShowDescription   -- Player wants to see room description.
+    | InspectItem Item  -- Player wants to investigate an item.
     | UserError String  -- Player did something wrong.
 
 -- Exported to allow a game to be played.
@@ -73,12 +74,20 @@ processPlayerAction Inventory =
 processPlayerAction Description =
     -- Show the current room's description.
     return (Just ShowDescription)
+processPlayerAction (Inspect i) = do
+    -- Attempt to get the description of the item.
+    mi <- getItem i
+    case mi of
+        Just item
+            -> return (Just (InspectItem item))
+        Nothing
+            -> return (Just (UserError ("No such item: " ++ i)))
 processPlayerAction Quit =
     -- Quit the game.
     return Nothing
 processPlayerAction Invalid =
     -- The player did not give proper input.
-    return (Just (UserError "invalid action!"))
+    return (Just (UserError "Invalid action!"))
 
 -- Takes a GameAction and an engine and does the IO so the player can know
 -- what's going on. The return value describes whether the main game loop should
@@ -94,6 +103,10 @@ processGameAction ShowInventory e = do
 processGameAction ShowDescription _ = do
     -- Player wants to see room description.
     return True
+processGameAction (InspectItem i) _ = do
+    -- Player wants information about an item.
+    showItem i
+    return False
 processGameAction (UserError err) _ = do
     -- Player must be shown what they did wrong.
     gameError err
@@ -117,6 +130,10 @@ showDescription e = do
     if null (inventory e)
         then print "Inventory: (Empty)"
         else print $ "Inventory: " ++ intercalate ", " (map (itemString (itemMap e)) (inventory e))
+
+-- Displays the desired item's description
+showItem :: Item -> IO ()
+showItem item = print (inspect item)
 
 -- When something goes wrong, outputs information to the player.
 gameError :: String -> IO ()
