@@ -11,5 +11,4 @@ data Engine = Engine
     , roomMap       :: RoomMap
     , itemMap       :: ItemMap
     , inventory     :: [ItemID]
-    , itemCount     :: Int
     } deriving (Show)

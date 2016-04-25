@@ -22,8 +22,8 @@ type ItemMap = Map.Map ItemID ItemInfo
 emptyItemMap :: ItemMap
 emptyItemMap = Map.empty
 
-addItemToMap :: ItemID -> Item -> Bool -> ItemMap -> ItemMap
-addItemToMap itemID item itemRetr = Map.insert itemID (ItemInfo item itemRetr Nothing)
+addItemToMap :: Item -> Bool -> ItemMap -> ItemMap
+addItemToMap item itemRetr = Map.insert (name item) (ItemInfo item itemRetr Nothing)
 
 addItemInfoToMap :: ItemID -> ItemInfo -> ItemMap -> ItemMap
 addItemInfoToMap = Map.insert

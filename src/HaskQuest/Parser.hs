@@ -14,9 +14,9 @@ For handling user input and then doing things.
 data PlayerAction
     = Go String
     | Back
-    | Quit
     | Inventory
     | Description
+    | Quit
     | Invalid
     deriving (Show)
 
@@ -27,9 +27,9 @@ parseChoice choice
             Back
         else
             Go firstRest
-    | firstWord == "quit" = Quit
     | firstWord == "inventory" = Inventory
     | oneOf firstWord ["description", "room", "where"] = Description
+    | firstWord == "quit" = Quit
     | otherwise = Invalid
     where
         firstWord  = toLower $ head $ words choice

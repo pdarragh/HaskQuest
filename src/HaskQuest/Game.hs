@@ -73,12 +73,12 @@ processPlayerAction Inventory =
 processPlayerAction Description =
     -- Show the current room's description.
     return (Just ShowDescription)
-processPlayerAction Invalid =
-    -- The player did not give proper input.
-    return (Just (UserError "invalid action!"))
 processPlayerAction Quit =
     -- Quit the game.
     return Nothing
+processPlayerAction Invalid =
+    -- The player did not give proper input.
+    return (Just (UserError "invalid action!"))
 
 -- Takes a GameAction and an engine and does the IO so the player can know
 -- what's going on. The return value describes whether the main game loop should

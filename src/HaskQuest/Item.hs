@@ -9,7 +9,7 @@ module HaskQuest.Item
 {-
 An ItemID is used to uniquely identify a specific Item within a game.
 -}
-type ItemID = Int
+type ItemID = String
 
 {-
 An Item is something the player can interact with. For now, the only supported
@@ -21,7 +21,7 @@ actions are to 'take' an Item and 'inspect' an Item.
     The description of the Item when the player decides to 'inspect' it.
 -}
 data Item = Item
-    { name      :: String
+    { name      :: ItemID
     , inspect   :: String
     } deriving (Eq)
 
