@@ -77,7 +77,7 @@ data Room = Room
     } deriving (Eq, Show)
 
 roomName :: Room -> String
-roomName r = roomID r
+roomName = roomID
 
 emptyRoom :: Room
 emptyRoom = Room "Empty" "An empty room with no way out." [] []

@@ -120,7 +120,7 @@ processGameAction ShowInventory e = do
     -- Player wants to see inventory.
     showInventory e
     return False
-processGameAction ShowDescription _ = do
+processGameAction ShowDescription _ =
     -- Player wants to see room description.
     return True
 processGameAction (InspectItem i) _ = do
@@ -137,7 +137,7 @@ showInventory :: Engine -> IO ()
 showInventory e = do
     print ""
     print "You are carrying:"
-    mapM_ printListItem (map (itemString (itemMap e)) (inventory e))
+    mapM_ (printListItem . itemString (itemMap e)) (inventory e)
 
 -- Displays the room description to the player.
 showDescription :: Engine -> IO ()
@@ -182,11 +182,11 @@ print s = putStrLn $ leader ++ " " ++ s
 
 -- Special output for list items.
 printListItem :: String -> IO ()
-printListItem s = printListItemAtLevel 1 s
+printListItem = printListItemAtLevel 1
 
 -- Output nested list items.
 printListItemAtLevel :: Int -> String -> IO ()
-printListItemAtLevel l s = putStrLn $ leader ++ " " ++ (concat (replicate l "  ")) ++ "* " ++ s
+printListItemAtLevel l s = putStrLn $ leader ++ " " ++ concat (replicate l "  ") ++ "* " ++ s
 
 -- The string to prefix each line with.
 leader :: String

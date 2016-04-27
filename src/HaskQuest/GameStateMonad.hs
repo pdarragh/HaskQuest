@@ -73,7 +73,7 @@ addNewItem new = do
 pickupItem :: ItemID -> GameStateM ()
 pickupItem itemID = do
     (Engine r p rm im inv) <- get
-    if elem itemID (items r)
+    if itemID `elem` items r
         then moveItemToInventory itemID
         else stateError "No such item in room!"
 
@@ -88,7 +88,7 @@ dropItem itemID = do
 moveItemFromInventory :: ItemID -> RoomID -> GameStateM ()
 moveItemFromInventory itemID roomID = do
     (Engine r p rm im inv) <- get
-    if elem itemID inv
+    if itemID `elem` inv
         then do
             let newIM  = moveItemInMap itemID (Just roomID) im
             put (Engine r p rm newIM inv)
