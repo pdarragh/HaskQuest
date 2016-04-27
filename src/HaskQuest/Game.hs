@@ -1,20 +1,11 @@
 module HaskQuest.Game
     ( startGame
-    , module HaskQuest.Engine
-    , module HaskQuest.Item
-    , module HaskQuest.ItemMap
-    , module HaskQuest.Room
-    , module HaskQuest.RoomMap
+    , module HaskQuest.Game.Engine
     ) where
 
-import HaskQuest.Engine
-import HaskQuest.GameStateMonad
-import HaskQuest.Item
-import HaskQuest.ItemMap
-import HaskQuest.Parser
-import HaskQuest.Room
-import HaskQuest.RoomMap
-import HaskQuest.State
+import HaskQuest.Game.Engine
+import HaskQuest.Game.Parser
+import HaskQuest.Game.State
 
 import System.Console.Readline
 import Control.Monad (when)

@@ -1,4 +1,4 @@
-module HaskQuest.Parser
+module HaskQuest.Game.Parser
     ( PlayerAction (..)
     , parseChoice
     )

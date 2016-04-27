@@ -1,4 +1,4 @@
-module HaskQuest.Item
+module HaskQuest.Game.Objects.Item
     ( ItemID
     , Item (..)
     , emptyItem

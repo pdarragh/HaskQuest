@@ -1,11 +1,7 @@
-module HaskQuest.GameStateMonad where
+module HaskQuest.Game.State.GameStateMonad where
 
-import HaskQuest.Engine
-import HaskQuest.Item
-import HaskQuest.ItemMap
-import HaskQuest.Room
-import HaskQuest.RoomMap
-import HaskQuest.State
+import HaskQuest.Game.Engine
+import HaskQuest.Game.State.SimpleState
 
 import Data.List (nub, delete)
 

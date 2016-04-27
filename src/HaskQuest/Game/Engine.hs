@@ -1,9 +1,9 @@
-module HaskQuest.Engine where
+module HaskQuest.Game.Engine 
+    ( Engine (..)
+    , module HaskQuest.Game.Objects
+    ) where
 
-import HaskQuest.Item
-import HaskQuest.ItemMap
-import HaskQuest.Room
-import HaskQuest.RoomMap
+import HaskQuest.Game.Objects
 
 data Engine = Engine
     { currentRoom   :: Room

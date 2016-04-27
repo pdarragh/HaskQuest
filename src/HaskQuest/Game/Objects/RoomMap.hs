@@ -1,6 +1,6 @@
-module HaskQuest.RoomMap where
+module HaskQuest.Game.Objects.RoomMap where
 
-import HaskQuest.Room
+import HaskQuest.Game.Objects.Room
 
 import qualified Data.Map as Map
 

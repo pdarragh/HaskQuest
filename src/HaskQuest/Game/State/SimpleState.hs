@@ -1,4 +1,4 @@
-module HaskQuest.State where
+module HaskQuest.Game.State.SimpleState where
 
 import Control.Monad
 

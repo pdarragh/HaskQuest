@@ -1,7 +1,7 @@
-module HaskQuest.ItemMap where
+module HaskQuest.Game.Objects.ItemMap where
 
-import HaskQuest.Item (ItemID, Item (..))
-import HaskQuest.Room (RoomID)
+import HaskQuest.Game.Objects.Item (ItemID, Item (..))
+import HaskQuest.Game.Objects.Room (RoomID)
 
 import qualified Data.Map as Map
 

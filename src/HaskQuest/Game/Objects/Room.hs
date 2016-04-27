@@ -1,4 +1,4 @@
-module HaskQuest.Room
+module HaskQuest.Game.Objects.Room
     ( RoomID
     , Exit (..)
     , setExitAliases
@@ -14,7 +14,7 @@ module HaskQuest.Room
     , addItem
     ) where
 
-import HaskQuest.Item (ItemID)
+import HaskQuest.Game.Objects.Item (ItemID)
 
 import Data.List (delete)
 
