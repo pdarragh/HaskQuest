@@ -56,11 +56,11 @@ runGame e desc = do
 processPlayerAction :: PlayerAction -> GameStateM (Maybe GameAction)
 processPlayerAction (Go s) = do
     -- Attempt to change rooms.
-    setRoom s
+    goToRoom s
     return (Just Continue)
 processPlayerAction Back = do
     -- Attempt to go back to the previous room.
-    setRoomPrev
+    goBack
     return (Just Continue)
 processPlayerAction Inventory =
     -- Show the current inventory.
@@ -133,14 +133,26 @@ showInventory e = do
 -- Displays the room description to the player.
 showDescription :: Engine -> IO ()
 showDescription e = do
+    let
+        crID = currentRoom e
+        mcr = lookupRoom crID (roomMap e)
+    case mcr of
+        Just cr
+            -> do
+                showDescription' cr
+                if null (inventory e)
+                    then print "Inventory: (Empty)"
+                    else print $ "Inventory: " ++ intercalate ", " (map (itemString (itemMap e)) (inventory e))
+        Nothing
+            -> error "No current room."
+
+showDescription' :: Room -> IO ()
+showDescription' cr = do
     print ""
-    print (description $ currentRoom e)
+    print (description cr)
     print ""
     print ""
-    print ("Room: " ++ roomName (currentRoom e))
-    if null (inventory e)
-        then print "Inventory: (Empty)"
-        else print $ "Inventory: " ++ intercalate ", " (map (itemString (itemMap e)) (inventory e))
+    print ("Room: " ++ roomName cr)
 
 -- Displays the desired item's description
 showItem :: Item -> IO ()

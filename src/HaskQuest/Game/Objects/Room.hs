@@ -10,6 +10,8 @@ module HaskQuest.Game.Objects.Room
     , setDesc
     , setExits
     , addExit
+    , lookupExit
+    , lookupExitByID
     , setItems
     , addItem
     ) where
@@ -93,6 +95,16 @@ setExits r es = r { exits = es }
 
 addExit :: Room -> Exit -> Room
 addExit r e = r { exits = e:exits r }
+
+lookupExit :: Room -> String -> Maybe RoomID
+lookupExit r alias = case filter (elem alias . aliases) (exits r) of
+    [e] -> Just (exitID e)
+    _   -> Nothing
+
+lookupExitByID :: Room -> RoomID -> Maybe RoomID
+lookupExitByID r roomID = case filter ( (==) roomID . exitID) (exits r) of
+    [e] -> Just (exitID e)
+    _   -> Nothing
 
 setItems :: Room -> [ItemID] -> Room
 setItems r is = r { items = is }

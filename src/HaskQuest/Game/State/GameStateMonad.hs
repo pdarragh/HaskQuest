@@ -1,11 +1,17 @@
-module HaskQuest.Game.State.GameStateMonad where
+module HaskQuest.Game.State.GameStateMonad
+    ( GameStateM
+    , getCurrentRoom
+    , goToRoom
+    , goBack
+    , getItem
+    , pickupItem
+    , dropItem
+    ) where
 
 import HaskQuest.Game.Engine
 import HaskQuest.Game.State.SimpleState
 
 import Data.List (nub, delete)
-
-import Prelude hiding (stateError)
 
 {-
 The intersection of the game engine with the simple state monad. The
@@ -17,190 +23,139 @@ style.
 -- The connection between the State monad and the game engine.
 type GameStateM a = State Engine a
 
--- Change the room to a different room.
--- If the desired room is not specified within the game engine's map of rooms,
--- and error is produced instead.
-setRoom :: RoomID -> GameStateM ()
-setRoom s = do
-    (Engine r p rm im inv) <- get
-    case roomIDFromExits (exits r) s of
-        Just roomid
-            -> case lookupRoom roomid rm of
-                Just room
-                    -> put (Engine room (Just (roomID r)) rm im inv)
-                Nothing
-                    -> stateError "Implementation error: no matching RoomID."
-        Nothing
-            -> stateError ("No such room: " ++ s)
+-- Take an item from the current room and move it into the inventory.
+pickupItem :: ItemID -> GameStateM ()
+pickupItem itemID = do
+    e <- get
+    cr <- getCurrentRoom
+    rm <- getRoomMap
+    if itemID `elem` items cr
+        then
+            let
+                newItems = delete itemID (items cr)
+                newRM = addRoomToMap (cr { items = newItems }) rm
+                newInv = itemID : inventory e
+            in
+                put (e { roomMap = newRM, inventory = newInv })
+        else stateError ("Cannot find " ++ itemID ++ " to pick up!")
 
--- Attempt to return to the previous room.
--- Depends on whether that room is defined in the current room's list of exits.
-setRoomPrev :: GameStateM ()
-setRoomPrev = do
-    (Engine r p rm im inv) <- get
-    case roomFromExits rm (exits r) p of
-        Just room
-            -> put (Engine room (Just (roomID r)) rm im inv)
-        Nothing
-            -> stateError "Cannot go back!"
+-- Remove an item from the inventory and place it in the current room.
+dropItem :: ItemID -> GameStateM ()
+dropItem itemID = do
+    e <- get
+    cr <- getCurrentRoom
+    rm <- getRoomMap
+    if itemID `elem` inventory e
+        then
+            let
+                newInv = delete itemID (inventory e)
+                newItems = itemID : items cr
+                newRM = addRoomToMap (cr { items = newItems }) rm
+            in
+                put (e { roomMap = newRM, inventory = newInv })
+        else stateError ("No " ++ itemID ++ " in inventory!")
 
 -- Try to look up the given item in the engine.
 getItem :: ItemID -> GameStateM (Maybe Item)
 getItem itemID = do
-    (Engine r p rm im inv) <- get
-    return (lookupItem itemID im)
+    e <- get
+    return (lookupItem itemID (itemMap e))
+
+-- Try to look up the ItemInfo for the given ID.
+lookupItemInfoInEngine :: ItemID -> GameStateM (Maybe ItemInfo)
+lookupItemInfoInEngine itemID = do
+    e <- get
+    im <- getItemMap
+    return (lookupItemInfo itemID im)
+
+-- Pulls the current ItemMap out of the engine.
+getItemMap :: GameStateM ItemMap
+getItemMap = do
+    e <- get
+    return (itemMap e)
+
+-- Attempt to change the current room to a different room attached to the
+-- current room.
+goToRoom :: RoomID -> GameStateM ()
+goToRoom alias = do
+    e <- get
+    cr <- getCurrentRoom
+    exitID <- lookupCurrentRoomExitByAlias alias
+    case exitID of
+        Just validRoomID
+            -> do
+                maybeRoom <- lookupRoomInEngine validRoomID
+                case maybeRoom of
+                    Just room
+                        -> put (e { currentRoom = roomID room, previousRoom = Just (roomID cr) })
+                    Nothing
+                        -> stateError "That location doesn't exist!"
+        Nothing
+            -> stateError ("Cannot go " ++ alias ++ ".")
+
+-- Given an alias, determines whether that alias is a valid exit from the
+-- current room.
+lookupCurrentRoomExitByAlias :: String -> GameStateM (Maybe RoomID)
+lookupCurrentRoomExitByAlias alias = do
+    e <- get
+    cr <- getCurrentRoom
+    case filter (elem alias . aliases) (exits cr) of
+        [e] -> return (Just (exitID e))
+        _   -> return Nothing
+
+-- Given a RoomID, attempts to discern whether there is an exit to that room
+-- from the current room.
+lookupCurrentRoomExitByID :: RoomID -> GameStateM (Maybe RoomID)
+lookupCurrentRoomExitByID inputID = do
+    e <- get
+    cr <- getCurrentRoom
+    case filter ( (==) inputID . exitID) (exits cr) of
+        [e] -> return (Just (exitID e))
+        _   -> return Nothing
+
+-- Pulls the RoomMap out of the engine.
+getRoomMap :: GameStateM RoomMap
+getRoomMap = do
+    e <- get
+    return (roomMap e)
+
+-- Attempt to return to the previous room.
+-- Depends on whether that room is defined in the current room's list of exits.
+goBack :: GameStateM ()
+goBack = do
+    e <- get
+    let crID = currentRoom e
+    case previousRoom e of
+        Just prevRoomID
+            -> do
+                prev <- lookupCurrentRoomExitByID prevRoomID
+                case prev of
+                    Just realPrev
+                        -> put (e { currentRoom = realPrev, previousRoom = Just crID })
+                    Nothing
+                        -> stateError "Cannot go back!"
+        Nothing
+            -> stateError "Cannot go back!"
 
 -- Install an additional room into the engine's mapping.
 addRoom :: Room -> GameStateM ()
-addRoom new = do
-    (Engine r p rm im inv) <- get
-    let newRM = addRoomToMap new rm
-    put (Engine r p newRM im inv)
+addRoom room = do
+    e <- get
+    put (e { roomMap = addRoomToMap room (roomMap e) })
 
--- Add a new key item to the player's inventory.
-addNewItem :: Item -> GameStateM ()
-addNewItem new = do
-    (Engine r p rm im inv) <- get
-    let io = ItemInfo new False Nothing
-    let newIM = addItemInfoToMap (name new) io im
-    put (Engine r p rm newIM inv)
-
--- Move an item from the current room to the player's inventory.
-pickupItem :: ItemID -> GameStateM ()
-pickupItem itemID = do
-    (Engine r p rm im inv) <- get
-    if itemID `elem` items r
-        then moveItemToInventory itemID
-        else stateError "No such item in room!"
-
--- Move an item from the inventory to the current room.
-dropItem :: ItemID -> GameStateM ()
-dropItem itemID = do
-    (Engine r p rm im inv) <- get
-    moveItemFromInventory itemID (roomID r)
-    addItemToRoom itemID (roomID r)
-
--- Take an item out of the inventory and add it to the specified room.
-moveItemFromInventory :: ItemID -> RoomID -> GameStateM ()
-moveItemFromInventory itemID roomID = do
-    (Engine r p rm im inv) <- get
-    if itemID `elem` inv
-        then do
-            let newIM  = moveItemInMap itemID (Just roomID) im
-            put (Engine r p rm newIM inv)
-            removeItemFromInventory itemID
-            addItemToRoom itemID roomID
-        else
-            stateError "No such item in inventory!"
-
--- Add an item to a specific room.
-addItemToRoom :: ItemID -> RoomID -> GameStateM ()
-addItemToRoom itemID roomID = do
-    (Engine r p rm im inv) <- get
-    case lookupRoom roomID rm of
+-- Returns the current room.
+getCurrentRoom :: GameStateM Room
+getCurrentRoom = do
+    e <- get
+    cr <- lookupRoomInEngine (currentRoom e)
+    case cr of
         Just room
-            -> do
-                let newRoom = addItem room itemID
-                    newRM   = addRoomToMap newRoom rm
-                put (Engine r p newRM im inv)
+            -> return room
         Nothing
-            -> stateError "No such room!"
+            -> error "Could not acquire current location."
 
--- Put an item into the inventory from anywhere.
-moveItemToInventory :: ItemID -> GameStateM ()
-moveItemToInventory itemID = do
-    (Engine r p rm im inv) <- get
-    case lookupItemInfo itemID im of
-        Just (ItemInfo _ _ (Just roomID))
-            -- Item is in a room. Move it to inventory.
-            -> moveItemToInventory' itemID roomID
-        Just (ItemInfo _ _ Nothing)
-            -- Item is already in inventory.
-            -> put (Engine r p rm im inv)
-        Nothing
-            -> stateError "No such item!"
-
--- Take an item from a room and put it in the inventory.
-moveItemToInventory' :: ItemID -> RoomID -> GameStateM ()
-moveItemToInventory' itemID roomID = do
-    removeItemFromRoom itemID roomID
-    (Engine r p rm im inv) <- get
-    let newIM  = moveItemInMap itemID (Just roomID) im
-        newInv = itemID:inv
-    put (Engine r p rm newIM newInv)
-
--- Move an item from its current location to another location.
-moveItem :: ItemID -> Maybe RoomID -> GameStateM ()
-moveItem itemID mri = do
-    (Engine r p rm im inv) <- get
-    -- Find out where item is right now.
-    case lookupItemInfo itemID im of
-        Just (ItemInfo _ _ (Just roomID))
-            -- Item is in a room.
-            -> do
-                removeItemFromRoom itemID roomID
-                moveItem' itemID mri
-        Just (ItemInfo _ _ Nothing)
-            -- Item is in inventory.
-            -> do
-                removeItemFromInventory itemID
-                moveItem' itemID mri
-        Nothing
-            -- Item does not exist.
-            -> stateError "No such item!"
-
--- Helper for moveItem. Assumes the item has been removed from its origin.
-moveItem' :: ItemID -> Maybe RoomID -> GameStateM ()
-moveItem' itemID mri = do
-    (Engine r p rm im inv) <- get
-    case mri of
-        Just roomID
-            -- Add item to room.
-            -> addItemToRoom itemID roomID
-        Nothing
-            -- Add item to inventory.
-            -> do
-                let newInv = itemID:inv
-                put (Engine r p rm im newInv)
-
--- Removes an item from a room (if that room exists).
-removeItemFromRoom :: ItemID -> RoomID -> GameStateM ()
-removeItemFromRoom itemID roomID = do
-    (Engine r p rm im inv) <- get
-    case lookupRoom roomID rm of
-        Just room
-            -> do
-                let is = items room
-                    newRM = addRoomToMap (room { items = delete itemID is }) rm
-                put (Engine r p newRM im inv)
-        Nothing
-            -> stateError "No such room!"
-
--- Removes an item from inventory.
-removeItemFromInventory :: ItemID -> GameStateM ()
-removeItemFromInventory itemID = do
-    (Engine r p rm im inv) <- get
-    let newInv = delete itemID inv
-    put (Engine r p rm im newInv)
-
--- Determines whether a given string is a valid RoomID in the list of exits.
-roomIDFromExits :: [Exit] -> String -> Maybe RoomID
-roomIDFromExits es s = if length matchedExits == 1
-        then
-            Just $ exitID (head matchedExits)
-        else
-            Nothing
-    where
-        matchedExits = nub $ filter (elem s . aliases) es
-
--- Attempts to acquire a room from the room map if it exists within a list of
--- exits.
-roomFromExits :: RoomMap -> [Exit] -> Maybe RoomID -> Maybe Room
-roomFromExits rs es mr = case mr of
-    Just roomid
-        -> case filtered of
-            [e] -> lookupRoom roomid rs
-            _   -> Nothing
-            where filtered = filter ( (==) roomid . exitID) es
-    Nothing
-        -> Nothing
+-- Searches the engine to find a particular room.
+lookupRoomInEngine :: RoomID -> GameStateM (Maybe Room)
+lookupRoomInEngine roomID = do
+    e <- get
+    return (lookupRoom roomID (roomMap e))

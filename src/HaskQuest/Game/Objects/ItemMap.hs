@@ -12,8 +12,8 @@ the player, and where that item currently exists.
 data ItemInfo = ItemInfo
     { item          :: Item             -- The actual item.
     , retrievable   :: Bool             -- Can it be picked up by the player?
-    , existsIn      :: Maybe RoomID     -- What room is it in? (Assumed to be
-                                        --  in inventory if Nothing.)
+    -- , existsIn      :: Maybe RoomID     -- What room is it in? (Assumed to be
+    --                                     --  in inventory if Nothing.)
     } deriving (Show)
 
 -- A mapping between ItemIDs and ItemInfos
@@ -23,7 +23,7 @@ emptyItemMap :: ItemMap
 emptyItemMap = Map.empty
 
 addItemToMap :: Item -> Bool -> ItemMap -> ItemMap
-addItemToMap item itemRetr = Map.insert (name item) (ItemInfo item itemRetr Nothing)
+addItemToMap item itemRetr = Map.insert (name item) (ItemInfo item itemRetr)
 
 addItemInfoToMap :: ItemID -> ItemInfo -> ItemMap -> ItemMap
 addItemInfoToMap = Map.insert
@@ -46,20 +46,6 @@ itemIsRetrievable itemID im = case mio of
     Nothing
         -> False
     where mio = lookupItemInfo itemID im
-
-moveItemInMap :: ItemID -> Maybe RoomID -> ItemMap -> ItemMap
-moveItemInMap itemID mri im = case mio of
-    Just io
-        -> addItemInfoToMap itemID (io { existsIn = mri }) im
-    Nothing
-        -> im
-    where mio = lookupItemInfo itemID im
-
--- itemExistsInMap :: ItemID -> ItemMap -> Bool
--- itemExistsInMap itemID im = case mio of
---     Just _  -> True
---     Nothing -> False
---     where mio = lookupItemInfo itemID im
 
 itemString :: ItemMap -> ItemID -> String
 itemString im itemID = case mi of

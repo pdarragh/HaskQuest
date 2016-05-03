@@ -6,8 +6,8 @@ module HaskQuest.Game.Engine
 import HaskQuest.Game.Objects
 
 data Engine = Engine
-    { currentRoom   :: Room
-    , prevRoom      :: Maybe RoomID
+    { currentRoom   :: RoomID
+    , previousRoom  :: Maybe RoomID
     , roomMap       :: RoomMap
     , itemMap       :: ItemMap
     , inventory     :: [ItemID]
